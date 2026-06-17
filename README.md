@@ -137,7 +137,7 @@ A lightweight Fabric mod featuring three core functions: TPA teleport requests, 
 - Run /warps to view all public warps; each entry is clickable for one-click teleport
 ---
 ## Configuration File
-All data is stored uniformly in saves/<Save>/data/simple-warp-tpa-home/data.json:
+All data is stored uniformly in saves/save/data/simple-warp-tpa-home/data.json:
 
 ```
 {
