@@ -74,7 +74,7 @@ public class SwthConfigCommand {
     private static int executeReload(CommandContext<CommandSourceStack> ctx) {
         CommandSourceStack source = ctx.getSource();
 
-        ModConfig.load();
+        ModConfig.load(source.getServer());
 
         source.sendSuccess(() ->
                 Component.translatableWithFallback("swth.config.reloaded",

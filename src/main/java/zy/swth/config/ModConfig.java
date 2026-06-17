@@ -2,7 +2,8 @@ package zy.swth.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.level.storage.LevelResource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,21 +15,17 @@ import java.nio.file.Path;
 import java.util.*;
 
 /**
- * 全局配置管理器
+ * 存档配置管理器
  * 统一管理模组设置和所有传送点数据（家、Warp），使用 JSON 文件持久化。
  * <p>
- * 文件位置：config/simple-warp-tpa-home/data.json
- * - 设置区：maxHomes（每玩家最大家的数量）、maxWarps（Warp 最大数量）
- * - 数据区：homes（按玩家 UUID 索引）、warps（按名称索引，供后续使用）
+ * 每个存档独立存储：<存档目录>/data/simple-warp-tpa-home/data.json
+ * 专用服务器：world/data/simple-warp-tpa-home/data.json
+ * 单人游戏：saves/<世界名>/data/simple-warp-tpa-home/data.json
  */
 public class ModConfig {
 
-    // ---------- 文件路径 ----------
-
-    private static final Path CONFIG_DIR = FabricLoader.getInstance()
-            .getConfigDir().resolve("simple-warp-tpa-home");
-    private static final Path CONFIG_FILE = CONFIG_DIR.resolve("data.json");
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final Logger LOGGER = LoggerFactory.getLogger("simple-warp-tpa-home-config");
 
     // ---------- 单例 ----------
 
@@ -41,39 +38,30 @@ public class ModConfig {
         return instance;
     }
 
+    // 当前存档的服务器引用（用于获取存档路径）
+    private MinecraftServer server;
+
+    // 当前数据文件路径
+    private Path dataFile;
+
     // ---------- 设置 ----------
 
-    /** 每名玩家最多可设置的家数量，默认 5 */
     private int maxHomes = 5;
-
-    /** Warp 最大数量（预留，供后续 Warp 功能使用），默认 20 */
-    private int maxWarps = 20;
+    private int maxWarps = 5;
 
     // ---------- 数据 ----------
 
-    /** 家的数据：key = 玩家 UUID 字符串，value = 该玩家的家列表 */
     private Map<String, List<HomeEntry>> homes = new HashMap<>();
-
-    /** Warp 数据（预留，供后续 Warp 功能使用） */
     private Map<String, WarpEntry> warps = new HashMap<>();
 
     // ---------- 内部数据类 ----------
 
-    /**
-     * 一个家的数据条目
-
-     * param name  家名称
-     * param world 维度标识符，如 "Minecraft:overworld"
-     * param x, y, z 坐标
-     * param yaw, pitch 视角朝向
-     */
     public static class HomeEntry {
         public String name;
         public String world;
         public double x, y, z;
         public float yaw, pitch;
 
-        /** Gson 反序列化用 */
         public HomeEntry() {}
 
         public HomeEntry(String name, String world, double x, double y, double z, float yaw, float pitch) {
@@ -87,9 +75,6 @@ public class ModConfig {
         }
     }
 
-    /**
-     * Warp 传送点数据（预留，供后续使用）
-     */
     public static class WarpEntry {
         public String world;
         public double x, y, z;
@@ -109,46 +94,51 @@ public class ModConfig {
 
     // ---------- 生命周期 ----------
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("simple-warp-tpa-home-config");
-
-    /** 禁止外部直接创建，使用 getInstance() */
     private ModConfig() {}
 
     /**
-     * 从磁盘加载配置文件。如果文件不存在，则使用默认值并新建文件。
+     * 从当前存档的数据目录加载配置文件。
+     *
+     * @param server 当前 Minecraft 服务器实例
      */
-    public static void load() {
+    public static void load(MinecraftServer server) {
         ModConfig config = getInstance();
+        config.server = server;
+        config.dataFile = server.getWorldPath(LevelResource.DATA)
+                .resolve("simple-warp-tpa-home")
+                .resolve("data.json");
 
-        if (!Files.exists(CONFIG_FILE)) {
-            // 文件不存在，保存默认配置
-            LOGGER.info("配置文件不存在，将使用默认设置创建新文件");
+        if (!Files.exists(config.dataFile)) {
+            LOGGER.info("存档数据不存在，将使用默认设置创建新文件");
             config.save();
             return;
         }
 
-        try (BufferedReader reader = Files.newBufferedReader(CONFIG_FILE)) {
-            // 读取现有配置
+        try (BufferedReader reader = Files.newBufferedReader(config.dataFile)) {
             JsonData data = GSON.fromJson(reader, JsonData.class);
             if (data != null) {
                 config.maxHomes = data.maxHomes;
                 config.maxWarps = data.maxWarps;
                 config.homes = data.homes != null ? data.homes : new HashMap<>();
                 config.warps = data.warps != null ? data.warps : new HashMap<>();
-                LOGGER.info("配置文件已加载: " + CONFIG_FILE);
+                LOGGER.info("存档数据已加载: " + config.dataFile);
             }
         } catch (Exception e) {
-            LOGGER.error("加载配置文件失败，将使用默认设置: " + e.getMessage());
+            LOGGER.error("加载存档数据失败，将使用默认设置: " + e.getMessage());
         }
     }
 
     /**
-     * 将当前配置保存到磁盘。
+     * 将当前配置保存到当前存档的数据目录。
      */
     public void save() {
+        if (dataFile == null) {
+            LOGGER.warn("未设置数据文件路径，无法保存");
+            return;
+        }
         try {
-            Files.createDirectories(CONFIG_DIR);
-            try (BufferedWriter writer = Files.newBufferedWriter(CONFIG_FILE)) {
+            Files.createDirectories(dataFile.getParent());
+            try (BufferedWriter writer = Files.newBufferedWriter(dataFile)) {
                 JsonData data = new JsonData();
                 data.maxHomes = this.maxHomes;
                 data.maxWarps = this.maxWarps;
@@ -158,13 +148,17 @@ public class ModConfig {
                 writer.flush();
             }
         } catch (Exception e) {
-            LOGGER.error("保存配置文件失败: " + e.getMessage());
+            LOGGER.error("保存存档数据失败: " + e.getMessage());
         }
     }
 
     /**
-     * 仅用于 JSON 序列化/反序列化的中间结构
+     * 重置单例，用于切换存档时清除旧状态。
      */
+    public static void reset() {
+        instance = null;
+    }
+
     private static class JsonData {
         int maxHomes = 5;
         int maxWarps = 20;
@@ -172,7 +166,7 @@ public class ModConfig {
         Map<String, WarpEntry> warps = new HashMap<>();
     }
 
-    // ---------- Homes 相关方法 ----------
+    // ---------- Homes 方法 ----------
 
     public int getMaxHomes() {
         return maxHomes;
@@ -183,17 +177,11 @@ public class ModConfig {
         save();
     }
 
-    /**
-     * 获取某玩家的所有家（不可修改的列表）
-     */
     public List<HomeEntry> getHomes(UUID playerUuid) {
         List<HomeEntry> list = homes.get(playerUuid.toString());
         return list != null ? Collections.unmodifiableList(list) : List.of();
     }
 
-    /**
-     * 获取某玩家的指定家
-     */
     public HomeEntry getHome(UUID playerUuid, String name) {
         List<HomeEntry> list = homes.get(playerUuid.toString());
         if (list == null) return null;
@@ -203,42 +191,26 @@ public class ModConfig {
         return null;
     }
 
-    /**
-     * 检查某玩家是否达到家的数量上限
-     */
     public boolean isAtMaxHomes(UUID playerUuid) {
         List<HomeEntry> list = homes.get(playerUuid.toString());
         return list != null && list.size() >= maxHomes;
     }
 
-    /**
-     * 检查某玩家是否已存在同名家
-     */
     public boolean homeExists(UUID playerUuid, String name) {
         List<HomeEntry> list = homes.get(playerUuid.toString());
         if (list == null) return false;
         return list.stream().anyMatch(h -> h.name.equals(name));
     }
 
-    /**
-     * 获取某玩家当前拥有的家数量
-     */
     public int getHomeCount(UUID playerUuid) {
         List<HomeEntry> list = homes.get(playerUuid.toString());
         return list != null ? list.size() : 0;
     }
 
-    /**
-     * 设置/更新一个家
-     * <p>
-     * 如果同名家已存在，更新其坐标；否则新增。
-     * 需要在调用前通过 {@link #isAtMaxHomes(UUID)} 检查上限。
-     */
     public void setHome(UUID playerUuid, HomeEntry entry) {
         String key = playerUuid.toString();
         List<HomeEntry> list = homes.computeIfAbsent(key, k -> new ArrayList<>());
 
-        // 如果同名家已存在，更新之
         for (int i = 0; i < list.size(); i++) {
             if (list.get(i).name.equals(entry.name)) {
                 list.set(i, entry);
@@ -247,16 +219,10 @@ public class ModConfig {
             }
         }
 
-        // 新增
         list.add(entry);
         save();
     }
 
-    /**
-     * 删除某玩家的一个家
-     *
-     * @return true 如果删除成功
-     */
     public boolean removeHome(UUID playerUuid, String name) {
         String key = playerUuid.toString();
         List<HomeEntry> list = homes.get(key);
@@ -272,7 +238,7 @@ public class ModConfig {
         return removed;
     }
 
-    // ---------- Warps 相关方法（预留） ----------
+    // ---------- Warps 方法 ----------
 
     public int getMaxWarps() {
         return maxWarps;

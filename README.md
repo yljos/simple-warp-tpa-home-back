@@ -56,7 +56,7 @@
 
 ## 配置文件
 
-所有数据保存在 `config/simple-warp-tpa-home/data.json`，统一管理：
+所有数据保存在 `saves/<存档>/data/simple-warp-tpa-home/data.json`，
 
 ```json
 {
@@ -115,7 +115,7 @@ A lightweight Fabric mod featuring three core functions: TPA teleport requests, 
 | | `/warp <name>` | All Players | 	Teleport to the specified public warp |
 | | `/warps` | All Players | List all public warps (clickable for instant teleport) |
 | | `/delwarp <name>` | **OP Only** | Delete a public warp point |
-| **配置** | `/swthconfig maxHomes <amount>` | **OP Only** | Adjust the maximum number of homes per player (default: 5) |
+| **Config** | `/swthconfig maxHomes <amount>` | **OP Only** | Adjust the maximum number of homes per player (default: 5) |
 | | `/swthconfig maxWarps <amount>` | **OP Only** | Adjust the global maximum number of warps (default: 5) |
 | | `/swthconfig reload` | **OP Only** | Reload configuration data from disk |
 | | `/swthconfig save` | **OP Only** | Manually save all configuration to disk |
@@ -137,7 +137,7 @@ A lightweight Fabric mod featuring three core functions: TPA teleport requests, 
 - Run /warps to view all public warps; each entry is clickable for one-click teleport
 ---
 ## Configuration File
-All data is stored uniformly in config/simple-warp-tpa-home/data.json:
+All data is stored uniformly in saves/<Save>/data/simple-warp-tpa-home/data.json:
 
 ```
 {

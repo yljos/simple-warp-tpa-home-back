@@ -26,16 +26,17 @@ public class SimpleWarpTpaHome implements ModInitializer {
 		CommandRegistrationCallback.EVENT.register(SwthConfigCommand::register);
 		CommandRegistrationCallback.EVENT.register(WarpCommand::register);
 
-		// 服务器启动时加载配置文件
+		// 服务器启动时加载当前存档的数据
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-			ModConfig.load();
-			LOGGER.info("配置文件已加载");
+			ModConfig.load(server);
+			LOGGER.info("存档数据已加载");
 		});
 
-		// 服务器关闭时保存配置文件
+		// 服务器关闭时保存数据并清除旧状态（切换存档时确保互不影响）
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
 			ModConfig.getInstance().save();
-			LOGGER.info("配置文件已保存");
+			ModConfig.reset();
+			LOGGER.info("存档数据已保存");
 		});
 
 		LOGGER.info("Simple Warp TPA Home 已初始化！");
