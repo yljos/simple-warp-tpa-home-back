@@ -49,10 +49,17 @@ public class ModConfig {
     private int maxHomes = 5;
     private int maxWarps = 5;
 
+    /** 传送倒计时（秒），默认 5，设为 0 则无延迟 */
+    private int teleportDelay = 0;
+
     // ---------- 数据 ----------
 
     private Map<String, List<HomeEntry>> homes = new HashMap<>();
     private Map<String, WarpEntry> warps = new HashMap<>();
+
+    public MinecraftServer getServer() {
+        return server;
+    }
 
     // ---------- 内部数据类 ----------
 
@@ -61,8 +68,6 @@ public class ModConfig {
         public String world;
         public double x, y, z;
         public float yaw, pitch;
-
-        public HomeEntry() {}
 
         public HomeEntry(String name, String world, double x, double y, double z, float yaw, float pitch) {
             this.name = name;
@@ -79,8 +84,6 @@ public class ModConfig {
         public String world;
         public double x, y, z;
         public float yaw, pitch;
-
-        public WarpEntry() {}
 
         public WarpEntry(String world, double x, double y, double z, float yaw, float pitch) {
             this.world = world;
@@ -119,12 +122,13 @@ public class ModConfig {
             if (data != null) {
                 config.maxHomes = data.maxHomes;
                 config.maxWarps = data.maxWarps;
+                config.teleportDelay = data.teleportDelay;
                 config.homes = data.homes != null ? data.homes : new HashMap<>();
                 config.warps = data.warps != null ? data.warps : new HashMap<>();
-                LOGGER.info("存档数据已加载: " + config.dataFile);
+                LOGGER.info("存档数据已加载: {}", config.dataFile);
             }
         } catch (Exception e) {
-            LOGGER.error("加载存档数据失败，将使用默认设置: " + e.getMessage());
+            LOGGER.error("加载存档数据失败，将使用默认设置: {}", e.getMessage());
         }
     }
 
@@ -142,13 +146,14 @@ public class ModConfig {
                 JsonData data = new JsonData();
                 data.maxHomes = this.maxHomes;
                 data.maxWarps = this.maxWarps;
+                data.teleportDelay = this.teleportDelay;
                 data.homes = this.homes;
                 data.warps = this.warps;
                 GSON.toJson(data, writer);
                 writer.flush();
             }
         } catch (Exception e) {
-            LOGGER.error("保存存档数据失败: " + e.getMessage());
+            LOGGER.error("保存存档数据失败: {}", e.getMessage());
         }
     }
 
@@ -162,6 +167,7 @@ public class ModConfig {
     private static class JsonData {
         int maxHomes = 5;
         int maxWarps = 20;
+        int teleportDelay = 5;
         Map<String, List<HomeEntry>> homes = new HashMap<>();
         Map<String, WarpEntry> warps = new HashMap<>();
     }
@@ -209,7 +215,7 @@ public class ModConfig {
 
     public void setHome(UUID playerUuid, HomeEntry entry) {
         String key = playerUuid.toString();
-        List<HomeEntry> list = homes.computeIfAbsent(key, k -> new ArrayList<>());
+        List<HomeEntry> list = homes.computeIfAbsent(key, _ -> new ArrayList<>());
 
         for (int i = 0; i < list.size(); i++) {
             if (list.get(i).name.equals(entry.name)) {
@@ -236,6 +242,17 @@ public class ModConfig {
             save();
         }
         return removed;
+    }
+
+    // ---------- 传送延迟 ----------
+
+    public int getTeleportDelay() {
+        return teleportDelay;
+    }
+
+    public void setTeleportDelay(int teleportDelay) {
+        this.teleportDelay = Math.clamp(teleportDelay, 0, 120);
+        save();
     }
 
     // ---------- Warps 方法 ----------

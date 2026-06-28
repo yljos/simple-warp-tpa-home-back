@@ -12,6 +12,8 @@ import zy.swth.command.SwthConfigCommand;
 import zy.swth.command.TpaCommand;
 import zy.swth.command.WarpCommand;
 import zy.swth.config.ModConfig;
+import zy.swth.handler.TeleportHandler;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 
 public class SimpleWarpTpaHome implements ModInitializer {
 	public static final String MOD_ID = "simple-warp-tpa-home";
@@ -21,10 +23,10 @@ public class SimpleWarpTpaHome implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		// 注册所有命令
-		CommandRegistrationCallback.EVENT.register(TpaCommand::register);
-		CommandRegistrationCallback.EVENT.register(HomeCommand::register);
-		CommandRegistrationCallback.EVENT.register(SwthConfigCommand::register);
-		CommandRegistrationCallback.EVENT.register(WarpCommand::register);
+		CommandRegistrationCallback.EVENT.register((dispatcher, _, _) -> TpaCommand.register(dispatcher));
+		CommandRegistrationCallback.EVENT.register((dispatcher, _, _) -> HomeCommand.register(dispatcher));
+		CommandRegistrationCallback.EVENT.register((dispatcher, _, _) -> SwthConfigCommand.register(dispatcher));
+		CommandRegistrationCallback.EVENT.register((dispatcher, _, _) -> WarpCommand.register(dispatcher));
 
 		// 服务器启动时加载当前存档的数据
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
@@ -32,8 +34,11 @@ public class SimpleWarpTpaHome implements ModInitializer {
 			LOGGER.info("存档数据已加载");
 		});
 
+		// 每 tick 处理传送倒计时
+		ServerTickEvents.START_SERVER_TICK.register(server -> TeleportHandler.tick());
+
 		// 服务器关闭时保存数据并清除旧状态（切换存档时确保互不影响）
-		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+		ServerLifecycleEvents.SERVER_STOPPING.register(_ -> {
 			ModConfig.getInstance().save();
 			ModConfig.reset();
 			LOGGER.info("存档数据已保存");

@@ -7,7 +7,6 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.ChatFormatting;
-import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.registries.Registries;
@@ -22,6 +21,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.phys.Vec3;
 import zy.swth.config.ModConfig;
+import zy.swth.handler.TeleportHandler;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -31,9 +31,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public class HomeCommand {
 
-    public static void register(CommandDispatcher<CommandSourceStack> dispatcher,
-                                CommandBuildContext registry,
-                                Commands.CommandSelection environment) {
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         // /home <名称>
         dispatcher.register(Commands.literal("home")
                 .then(Commands.argument("name", StringArgumentType.greedyString())
@@ -94,12 +92,15 @@ public class HomeCommand {
                 home.pitch,
                 TeleportTransition.DO_NOTHING
         );
-        player.teleport(transition);
-
-        player.sendSystemMessage(
-                Component.translatableWithFallback("swth.home.teleported",
-                        "已传送到家 \"%s\"", name)
-                        .withStyle(ChatFormatting.GREEN)
+        TeleportHandler.startTeleport(
+                player,
+                transition,
+                () -> player.sendSystemMessage(
+                        Component.translatableWithFallback("swth.home.teleported",
+                                "已传送到家 \"%s\"", name)
+                                .withStyle(ChatFormatting.GREEN)
+                ),
+                () -> {}
         );
 
         return 1;

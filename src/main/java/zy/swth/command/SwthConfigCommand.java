@@ -4,7 +4,6 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.ChatFormatting;
-import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -15,9 +14,7 @@ import zy.swth.config.ModConfig;
  */
 public class SwthConfigCommand {
 
-    public static void register(CommandDispatcher<CommandSourceStack> dispatcher,
-                                CommandBuildContext registry,
-                                Commands.CommandSelection environment) {
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("swthconfig")
                 .requires(source -> Commands.LEVEL_GAMEMASTERS.check(source.permissions()))
                 .then(Commands.literal("maxHomes")
@@ -26,6 +23,9 @@ public class SwthConfigCommand {
                 .then(Commands.literal("maxWarps")
                         .then(Commands.argument("amount", IntegerArgumentType.integer(1, 100))
                                 .executes(SwthConfigCommand::executeSetMaxWarps)))
+                .then(Commands.literal("teleportDelay")
+                        .then(Commands.argument("seconds", IntegerArgumentType.integer(0, 120))
+                                .executes(SwthConfigCommand::executeSetTeleportDelay)))
                 .then(Commands.literal("reload")
                         .executes(SwthConfigCommand::executeReload))
                 .then(Commands.literal("save")
@@ -65,6 +65,25 @@ public class SwthConfigCommand {
                                 "已将 Warp 最大数量从 %s 修改为 %s",
                                 String.valueOf(oldValue), String.valueOf(amount))
                         .withStyle(ChatFormatting.GREEN),
+                true
+        );
+
+        return 1;
+    }
+
+    private static int executeSetTeleportDelay(CommandContext<CommandSourceStack> ctx) {
+        CommandSourceStack source = ctx.getSource();
+        int seconds = IntegerArgumentType.getInteger(ctx, "seconds");
+
+        ModConfig config = ModConfig.getInstance();
+        int oldValue = config.getTeleportDelay();
+        config.setTeleportDelay(seconds);
+
+        source.sendSuccess(() ->
+                        Component.translatableWithFallback("swth.config.teleport_delay_set",
+                                        "已将传送倒计时从 %s 秒修改为 %s 秒",
+                                        String.valueOf(oldValue), String.valueOf(seconds))
+                                .withStyle(ChatFormatting.GREEN),
                 true
         );
 

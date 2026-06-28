@@ -6,7 +6,6 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.ChatFormatting;
-import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.registries.Registries;
@@ -21,6 +20,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.phys.Vec3;
 import zy.swth.config.ModConfig;
+import zy.swth.handler.TeleportHandler;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -32,9 +32,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public class WarpCommand {
 
-    public static void register(CommandDispatcher<CommandSourceStack> dispatcher,
-                                CommandBuildContext registry,
-                                Commands.CommandSelection environment) {
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         // /warp <名称>
         dispatcher.register(Commands.literal("warp")
                 .then(Commands.argument("name", StringArgumentType.greedyString())
@@ -99,12 +97,15 @@ public class WarpCommand {
                 warp.pitch,
                 TeleportTransition.DO_NOTHING
         );
-        player.teleport(transition);
-
-        player.sendSystemMessage(
-                Component.translatableWithFallback("swth.warp.teleported",
-                        "已传送到公共传送点 \"%s\"", name)
-                        .withStyle(ChatFormatting.GREEN)
+        TeleportHandler.startTeleport(
+                player,
+                transition,
+                () -> player.sendSystemMessage(
+                        Component.translatableWithFallback("swth.warp.teleported",
+                                "已传送到公共传送点 \"%s\"", name)
+                                .withStyle(ChatFormatting.GREEN)
+                ),
+                () -> {}
         );
 
         return 1;

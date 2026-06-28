@@ -46,5 +46,10 @@
 
   "swth.dim.overworld": "主世界",
   "swth.dim.nether": "下界",
-  "swth.dim.end": "末地"
+  "swth.dim.end": "末地",
+
+  "swth.teleport.countdown": "传送倒计时：%s 秒...",
+  "swth.teleport.cancelled_move": "§c传送已取消，因为你移动了",
+
+  "swth.config.teleport_delay_set": "已将传送倒计时从 %s 秒修改为 %s 秒"
 }

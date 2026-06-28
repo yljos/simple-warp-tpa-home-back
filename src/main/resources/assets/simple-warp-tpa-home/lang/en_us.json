@@ -46,5 +46,10 @@
 
   "swth.dim.overworld": "Overworld",
   "swth.dim.nether": "Nether",
-  "swth.dim.end": "End"
+  "swth.dim.end": "End",
+
+  "swth.teleport.countdown": "Teleporting in %s seconds...",
+  "swth.teleport.cancelled_move": "§cTeleport cancelled due to movement",
+
+  "swth.config.teleport_delay_set": "Teleport delay changed from %s to %s seconds"
 }

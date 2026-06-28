@@ -3,7 +3,6 @@ package zy.swth.command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.ChatFormatting;
-import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -12,6 +11,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.portal.TeleportTransition;
+import zy.swth.handler.TeleportHandler;
 
 import java.util.Map;
 import java.util.UUID;
@@ -40,9 +40,7 @@ public class TpaCommand {
     /**
      * 注册 /tpa、/tpay、/tpan 三个命令
      */
-    public static void register(CommandDispatcher<CommandSourceStack> dispatcher,
-                                CommandBuildContext registry,
-                                Commands.CommandSelection environment) {
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         // /tpa <玩家> — 向目标玩家发送传送请求
         dispatcher.register(Commands.literal("tpa")
                 .then(Commands.argument("target", EntityArgument.player())
@@ -140,7 +138,15 @@ public class TpaCommand {
             return 0;
         }
 
-        // ———— 执行传送 ————
+        // ———— 通知接受方 ————
+        Component requesterName = requester.getDisplayName().copy().withStyle(ChatFormatting.AQUA);
+        player.sendSystemMessage(
+                Component.translatableWithFallback("swth.tpa.accepted_receiver",
+                        "已接受 %s 的传送请求", requesterName)
+                        .withStyle(ChatFormatting.GREEN)
+        );
+
+        // ———— 延迟传送发起方 ————
         TeleportTransition transition = new TeleportTransition(
                 player.level(),
                 player.position(),
@@ -149,21 +155,16 @@ public class TpaCommand {
                 player.getXRot(),
                 TeleportTransition.DO_NOTHING
         );
-        requester.teleport(transition);
-
-        // ———— 通知双方 ————
-        Component requesterName = requester.getDisplayName().copy().withStyle(ChatFormatting.AQUA);
-        player.sendSystemMessage(
-                Component.translatableWithFallback("swth.tpa.accepted_receiver",
-                        "已接受 %s 的传送请求", requesterName)
-                        .withStyle(ChatFormatting.GREEN)
-        );
-
         Component playerName = player.getDisplayName().copy().withStyle(ChatFormatting.AQUA);
-        requester.sendSystemMessage(
-                Component.translatableWithFallback("swth.tpa.accepted_sender",
-                        "%s 已接受你的传送请求", playerName)
-                        .withStyle(ChatFormatting.GREEN)
+        TeleportHandler.startTeleport(
+                requester,
+                transition,
+                () -> requester.sendSystemMessage(
+                        Component.translatableWithFallback("swth.tpa.accepted_sender",
+                                "%s 已接受你的传送请求", playerName)
+                                .withStyle(ChatFormatting.GREEN)
+                ),
+                () -> {}
         );
 
         return 1;
