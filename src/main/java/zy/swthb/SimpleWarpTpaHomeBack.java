@@ -45,8 +45,6 @@ public class SimpleWarpTpaHomeBack implements ModInitializer {
 		// 每 tick 处理传送倒计时
 		ServerTickEvents.START_SERVER_TICK.register(server -> TeleportHandler.tick());
 
-		// 每 5 分钟清理超时的 TPA 请求（请求超时时长为 1 分钟）
-		TpaCommand.registerCleanupEvent();
 
 		// 服务器关闭时保存数据并清除旧状态（切换存档时确保互不影响）
 		ServerLifecycleEvents.SERVER_STOPPING.register(_ -> {
