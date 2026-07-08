@@ -12,24 +12,18 @@ import zy.swthb.config.ModConfig;
 import java.util.function.Supplier;
 
 /**
- * /swthbconfig 命令 — 修改模组运行时配置（需要管理员权限）
+ * /swthbconfig command — Modify mod runtime config (Requires admin permissions)
  * <p>
- * 支持修改：最大家数量、最大 Warp 数量、传送倒计时、/back 开关、重载配置、保存配置
+ * Supported modifications: max warps, /back toggle, reload config, save config
  */
 public class SwthbConfigCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("swthbconfig")
                 .requires(source -> Commands.LEVEL_GAMEMASTERS.check(source.permissions()))
-                .then(Commands.literal("maxHomes")
-                        .then(Commands.argument("amount", IntegerArgumentType.integer(1, 100))
-                                .executes(SwthbConfigCommand::executeSetMaxHomes)))
                 .then(Commands.literal("maxWarps")
                         .then(Commands.argument("amount", IntegerArgumentType.integer(1, 100))
                                 .executes(SwthbConfigCommand::executeSetMaxWarps)))
-                .then(Commands.literal("teleportDelay")
-                        .then(Commands.argument("seconds", IntegerArgumentType.integer(0, 120))
-                                .executes(SwthbConfigCommand::executeSetTeleportDelay)))
                 .then(Commands.literal("backEnabled")
                         .then(Commands.literal("true")
                                 .executes(ctx -> executeSetBackEnabled(ctx, true)))
@@ -40,25 +34,6 @@ public class SwthbConfigCommand {
                 .then(Commands.literal("save")
                         .executes(SwthbConfigCommand::executeSave))
         );
-    }
-
-    private static int executeSetMaxHomes(CommandContext<CommandSourceStack> ctx) {
-        CommandSourceStack source = ctx.getSource();
-        int amount = IntegerArgumentType.getInteger(ctx, "amount");
-
-        ModConfig config = ModConfig.getInstance();
-        int oldValue = config.getMaxHomes();
-        config.setMaxHomes(amount);
-
-        source.sendSuccess(() ->
-                Component.translatableWithFallback("swthb.config.max_homes_set",
-                                "已将每名玩家最大家的数量从 %s 修改为 %s",
-                                String.valueOf(oldValue), String.valueOf(amount))
-                        .withStyle(ChatFormatting.GREEN),
-                true
-        );
-
-        return 1;
     }
 
     private static int executeSetMaxWarps(CommandContext<CommandSourceStack> ctx) {
@@ -74,25 +49,6 @@ public class SwthbConfigCommand {
                                 "已将 Warp 最大数量从 %s 修改为 %s",
                                 String.valueOf(oldValue), String.valueOf(amount))
                         .withStyle(ChatFormatting.GREEN),
-                true
-        );
-
-        return 1;
-    }
-
-    private static int executeSetTeleportDelay(CommandContext<CommandSourceStack> ctx) {
-        CommandSourceStack source = ctx.getSource();
-        int seconds = IntegerArgumentType.getInteger(ctx, "seconds");
-
-        ModConfig config = ModConfig.getInstance();
-        int oldValue = config.getTeleportDelay();
-        config.setTeleportDelay(seconds);
-
-        source.sendSuccess(() ->
-                        Component.translatableWithFallback("swthb.config.teleport_delay_set",
-                                        "已将传送倒计时从 %s 秒修改为 %s 秒",
-                                        String.valueOf(oldValue), String.valueOf(seconds))
-                                .withStyle(ChatFormatting.GREEN),
                 true
         );
 
