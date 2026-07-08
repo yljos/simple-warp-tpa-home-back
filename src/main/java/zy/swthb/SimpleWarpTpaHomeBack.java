@@ -53,6 +53,6 @@ public class SimpleWarpTpaHomeBack implements ModInitializer {
 			LOGGER.info("Data Saved");
 		});
 
-		LOGGER.info("Simple Warp TPA Home Back init！");
+		LOGGER.info("Simple Warp TPA Home Back init!");
 	}
 }

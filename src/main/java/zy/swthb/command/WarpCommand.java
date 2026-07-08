@@ -16,6 +16,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.phys.Vec3;
@@ -28,14 +30,14 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Warp 公共传送点功能命令：warp、warps、setwarp、delwarp
+ * Warp public teleport commands: warp, warps, setwarp, delwarp
  * <p>
- * - setwarp / delwarp 需要 OP 权限（Gamemaster 级别）
+ * - setwarp / delwarp requires OP permission (Gamemaster level)
  */
 public class WarpCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-        // /warp <名称>
+        // /warp <name>
         dispatcher.register(Commands.literal("warp")
                 .then(Commands.argument("name", StringArgumentType.greedyString())
                         .suggests(WarpCommand::suggestWarps)
@@ -45,14 +47,14 @@ public class WarpCommand {
         dispatcher.register(Commands.literal("warps")
                 .executes(WarpCommand::executeWarps));
 
-        // /setwarp <名称>（OP）
+        // /setwarp <name> (OP)
         dispatcher.register(Commands.literal("setwarp")
                 .requires(source -> Commands.LEVEL_GAMEMASTERS.check(source.permissions()))
                 .then(Commands.argument("name", StringArgumentType.greedyString())
                         .suggests(WarpCommand::suggestWarps)
                         .executes(WarpCommand::executeSetWarp)));
 
-        // /delwarp <名称>（OP）
+        // /delwarp <name> (OP)
         dispatcher.register(Commands.literal("delwarp")
                 .requires(source -> Commands.LEVEL_GAMEMASTERS.check(source.permissions()))
                 .then(Commands.argument("name", StringArgumentType.greedyString())
@@ -91,7 +93,7 @@ public class WarpCommand {
             return 0;
         }
 
-        // 记录传送前的位置，供 /back 返回
+        // Save location for /back command
         BackHandler.saveBackPoint(player, BackHandler.LocationType.TELEPORT);
 
         TeleportTransition transition = new TeleportTransition(
@@ -105,11 +107,23 @@ public class WarpCommand {
         TeleportHandler.startTeleport(
                 player,
                 transition,
-                () -> player.sendSystemMessage(
-                        Component.translatableWithFallback("swthb.warp.teleported",
-                                "已传送到公共传送点 \"%s\"", name)
-                                .withStyle(ChatFormatting.GREEN)
-                ),
+                () -> {
+                    player.sendSystemMessage(
+                            Component.translatableWithFallback("swthb.warp.teleported",
+                                    "已传送到公共传送点 \"%s\"", name)
+                                    .withStyle(ChatFormatting.GREEN)
+                    );
+                    
+                    // Play Enderman teleport sound
+                    player.level().playSound(
+                            null, 
+                            player.blockPosition(), 
+                            SoundEvents.ENDERMAN_TELEPORT, 
+                            SoundSource.PLAYERS, 
+                            1.0F, 
+                            1.0F
+                    );
+                },
                 () -> {}
         );
 
@@ -245,7 +259,7 @@ public class WarpCommand {
         }
     }
 
-    // ========== TAB 补齐 ==========
+    // ========== TAB Completion ==========
 
     private static CompletableFuture<Suggestions> suggestWarps(CommandContext<CommandSourceStack> ctx, SuggestionsBuilder builder) {
         ModConfig config = ModConfig.getInstance();
