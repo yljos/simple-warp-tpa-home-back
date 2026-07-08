@@ -31,8 +31,6 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Warp public teleport commands: warp, warps, setwarp, delwarp
- * <p>
- * - setwarp / delwarp requires OP permission (Gamemaster level)
  */
 public class WarpCommand {
 
@@ -47,16 +45,14 @@ public class WarpCommand {
         dispatcher.register(Commands.literal("warps")
                 .executes(WarpCommand::executeWarps));
 
-        // /setwarp <name> (OP)
+        // /setwarp <name> (Available to all players)
         dispatcher.register(Commands.literal("setwarp")
-                .requires(source -> Commands.LEVEL_GAMEMASTERS.check(source.permissions()))
                 .then(Commands.argument("name", StringArgumentType.greedyString())
                         .suggests(WarpCommand::suggestWarps)
                         .executes(WarpCommand::executeSetWarp)));
 
-        // /delwarp <name> (OP)
+        // /delwarp <name> (Available to all players)
         dispatcher.register(Commands.literal("delwarp")
-                .requires(source -> Commands.LEVEL_GAMEMASTERS.check(source.permissions()))
                 .then(Commands.argument("name", StringArgumentType.greedyString())
                         .suggests(WarpCommand::suggestWarps)
                         .executes(WarpCommand::executeDelWarp)));
@@ -148,7 +144,7 @@ public class WarpCommand {
         if (warps.isEmpty()) {
             player.sendSystemMessage(
                     Component.translatableWithFallback("swthb.warp.empty",
-                            "暂无公共传送点，请联系管理员添加")
+                            "暂无公共传送点，请添加")
                             .withStyle(ChatFormatting.GRAY)
             );
             return 1;
@@ -194,15 +190,6 @@ public class WarpCommand {
         ModConfig config = ModConfig.getInstance();
 
         boolean isUpdate = config.getWarp(name) != null;
-        if (!isUpdate && config.getWarps().size() >= config.getMaxWarps()) {
-            source.sendFailure(
-                    Component.translatableWithFallback("swthb.warp.max_reached",
-                            "公共传送点数量已达上限 (%s)，请先删除一个",
-                            String.valueOf(config.getMaxWarps()))
-                            .withStyle(ChatFormatting.RED)
-            );
-            return 0;
-        }
 
         ModConfig.WarpEntry entry = new ModConfig.WarpEntry(
                 player.level().dimension().identifier().toString(),
