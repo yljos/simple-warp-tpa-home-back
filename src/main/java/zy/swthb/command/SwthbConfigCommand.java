@@ -9,6 +9,7 @@ import net.minecraft.network.chat.Component;
 import zy.swthb.config.ModConfig;
 
 import java.util.function.Supplier;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 
 /**
  * /swthbconfig command — Modify mod runtime config (Requires admin permissions)
@@ -19,7 +20,7 @@ public class SwthbConfigCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("swthbconfig")
-                .requires(source -> Commands.LEVEL_GAMEMASTERS.check(source.permissions()))
+                .requires(source -> Permissions.check(source, "swthb.command.config", 4))
                 .then(Commands.literal("backEnabled")
                         .then(Commands.literal("true")
                                 .executes(ctx -> executeSetBackEnabled(ctx, true)))
