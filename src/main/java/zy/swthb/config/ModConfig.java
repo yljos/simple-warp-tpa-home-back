@@ -144,7 +144,7 @@ public class ModConfig {
                 config.backEnabled = data.backEnabled;
                 config.homes = data.homes != null ? data.homes : new HashMap<>();
                 config.warps = data.warps != null ? data.warps : new HashMap<>();
-                LOGGER.info("Data Loaded: {}", config.dataFile);
+                LOGGER.info("Data Loading: {}", config.dataFile);
             }
         } catch (Exception e) {
             LOGGER.error("加载存档数据失败，将使用默认设置: {}", e.getMessage());
