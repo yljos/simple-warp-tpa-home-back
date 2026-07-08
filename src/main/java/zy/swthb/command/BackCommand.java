@@ -11,6 +11,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.phys.Vec3;
@@ -18,9 +20,9 @@ import zy.swthb.config.ModConfig;
 import zy.swthb.handler.BackHandler;
 
 /**
- * /back 命令 — 返回最后一次死亡或传送前的位置
+ * /back command — Return to the last death or teleport location
  * <p>
- * 可在配置中通过 backEnabled 开启/关闭。
+ * Can be toggled in config via backEnabled.
  */
 public class BackCommand {
 
@@ -34,14 +36,14 @@ public class BackCommand {
         ServerPlayer player = source.getPlayer();
         if (player == null) return 0;
 
-        // 检查功能是否开启
+        // Check if feature is enabled
         if (!ModConfig.getInstance().isBackEnabled()) {
             source.sendFailure(Component.translatableWithFallback(
                     "swthb.back.disabled", "返回功能已关闭"));
             return 0;
         }
 
-        // 检查是否有 back 点
+        // Check if there is a back point
         BackHandler.BackPoint bp = BackHandler.getBackPoint(player);
         if (bp == null) {
             source.sendFailure(Component.translatableWithFallback(
@@ -49,7 +51,7 @@ public class BackCommand {
             return 0;
         }
 
-        // 解析目标维度
+        // Parse target dimension
         Identifier dimId = Identifier.parse(bp.world());
         ResourceKey<Level> dimKey = ResourceKey.create(Registries.DIMENSION, dimId);
         ServerLevel targetLevel = source.getServer().getLevel(dimKey);
@@ -60,7 +62,7 @@ public class BackCommand {
             return 0;
         }
 
-        // 执行跨维度传送
+        // Execute cross-dimension teleport
         TeleportTransition transition = new TeleportTransition(
                 targetLevel,
                 new Vec3(bp.x(), bp.y(), bp.z()),
@@ -71,7 +73,17 @@ public class BackCommand {
         );
         player.teleport(transition);
 
-        // 显示返回来源类型（死亡地点 / 传送前位置）
+        // Play Enderman teleport sound at destination
+        player.level().playSound(
+                null,
+                player.blockPosition(),
+                SoundEvents.ENDERMAN_TELEPORT,
+                SoundSource.PLAYERS,
+                1.0F,
+                1.0F
+        );
+
+        // Display return source type (Death location / Pre-teleport location)
         String typeKey = bp.type() == BackHandler.LocationType.DEATH
                 ? "swthb.back.type_death" : "swthb.back.type_teleport";
         String typeFallback = bp.type() == BackHandler.LocationType.DEATH
