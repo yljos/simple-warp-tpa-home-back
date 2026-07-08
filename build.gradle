@@ -21,15 +21,18 @@ fabricApi {
 }
 
 dependencies {
-	// To change the versions see the gradle.properties file
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	
-	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    // To change the versions see the gradle.properties file
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-	// Fabric API. This is technically optional, but you probably want it anyway.
-	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
-	implementation("me.lucko:fabric-permissions-api:0.7.0")
-	
+    // Fabric API. This is technically optional, but you probably want it anyway.
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+    
+    // 使用 modImplementation 替代普通的 implementation 才能让 Loom 正确识别 Mod 依赖
+    modImplementation("me.lucko:fabric-permissions-api:0.7.0")
+    // 使用 include 将该依赖嵌套（打包）放入你最终生成的模组 jar 中，避免服务器因缺少前置而崩溃
+    include("me.lucko:fabric-permissions-api:0.7.0")
 }
 
 processResources {
