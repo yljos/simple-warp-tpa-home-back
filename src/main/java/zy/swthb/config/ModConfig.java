@@ -41,7 +41,7 @@ public class ModConfig {
     // 当前存档的服务器引用（用于获取存档路径）
     private MinecraftServer server;
 
-    // 当前数据文件路径
+    // 当前数据 file 路径
     private Path dataFile;
 
     // ---------- 设置 ----------
@@ -130,7 +130,7 @@ public class ModConfig {
                 .resolve("data.json");
 
         if (!Files.exists(config.dataFile)) {
-            LOGGER.info("存档数据不存在，将使用默认设置创建新文件");
+            LOGGER.info("Save data does not exist, creating new file with default settings.");
             config.save();
             return;
         }
@@ -144,10 +144,10 @@ public class ModConfig {
                 config.backEnabled = data.backEnabled;
                 config.homes = data.homes != null ? data.homes : new HashMap<>();
                 config.warps = data.warps != null ? data.warps : new HashMap<>();
-                LOGGER.info("Data Loading: {}", config.dataFile);
+                LOGGER.info("Data loaded successfully from: {}", config.dataFile);
             }
         } catch (Exception e) {
-            LOGGER.error("加载存档数据失败，将使用默认设置: {}", e.getMessage());
+            LOGGER.error("Failed to load save data, reverting to default settings: {}", e.getMessage());
         }
     }
 
@@ -156,7 +156,7 @@ public class ModConfig {
      */
     public void save() {
         if (dataFile == null) {
-            LOGGER.warn("未设置数据文件路径，无法保存");
+            LOGGER.warn("Data file path is not set, cannot save.");
             return;
         }
         try {
@@ -173,7 +173,7 @@ public class ModConfig {
                 writer.flush();
             }
         } catch (Exception e) {
-            LOGGER.error("保存存档数据失败: {}", e.getMessage());
+            LOGGER.error("Failed to save data: {}", e.getMessage());
         }
     }
 
