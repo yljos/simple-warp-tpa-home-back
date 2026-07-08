@@ -36,7 +36,7 @@ public class SimpleWarpTpaHomeBack implements ModInitializer {
 		// 服务器启动时加载当前存档的数据
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			ModConfig.load(server);
-			LOGGER.info("存档数据已加载");
+			LOGGER.info("Data Loaded");
 		});
 
 		// 注册 BackHandler 自动清理事件（玩家下线、服务器关闭时）
@@ -50,9 +50,9 @@ public class SimpleWarpTpaHomeBack implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STOPPING.register(_ -> {
 			ModConfig.getInstance().save();
 			ModConfig.reset();
-			LOGGER.info("存档数据已保存");
+			LOGGER.info("Data Saved");
 		});
 
-		LOGGER.info("Simple Warp TPA Home Back 已初始化！");
+		LOGGER.info("Simple Warp TPA Home Back init！");
 	}
 }
