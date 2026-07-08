@@ -8,6 +8,8 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.portal.TeleportTransition;
 import zy.swthb.handler.BackHandler;
 import zy.swthb.handler.TeleportHandler;
@@ -67,11 +69,24 @@ public class TpaCommand {
         TeleportHandler.startTeleport(
                 player,
                 transition,
-                () -> player.sendSystemMessage(
-                        Component.translatableWithFallback("swthb.tpa.teleporting",
-                                "正在传送到 %s ...", targetName)
-                                .withStyle(ChatFormatting.GREEN)
-                ),
+                () -> {
+                    // Send teleport message
+                    player.sendSystemMessage(
+                            Component.translatableWithFallback("swthb.tpa.teleporting",
+                                    "正在传送到 %s ...", targetName)
+                                    .withStyle(ChatFormatting.GREEN)
+                    );
+                    
+                    // Play Enderman teleport sound at destination
+                    player.level().playSound(
+                            null, 
+                            player.blockPosition(), 
+                            SoundEvents.ENDERMAN_TELEPORT, 
+                            SoundSource.PLAYERS, 
+                            1.0F, 
+                            1.0F
+                    );
+                },
                 () -> {}
         );
 
