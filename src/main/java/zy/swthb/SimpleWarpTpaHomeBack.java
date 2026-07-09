@@ -28,7 +28,7 @@ public class SimpleWarpTpaHomeBack implements ModInitializer {
 		CommandRegistrationCallback.EVENT.register((dispatcher, _, _) -> {
 			TpaCommand.register(dispatcher);
 			HomeCommand.register(dispatcher);
-			SwthbConfigCommand.register(dispatcher);
+			// SwthbConfigCommand.register(dispatcher);
 			WarpCommand.register(dispatcher);
 			BackCommand.register(dispatcher);
 		});

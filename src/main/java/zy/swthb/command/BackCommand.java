@@ -1,7 +1,9 @@
+// BackCommand.java
 package zy.swthb.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -16,18 +18,16 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.phys.Vec3;
-import zy.swthb.config.ModConfig;
 import zy.swthb.handler.BackHandler;
 
 /**
  * /back command — Return to the last death or teleport location
- * <p>
- * Can be toggled in config via backEnabled.
  */
 public class BackCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("back")
+                .requires(source -> Permissions.check(source, "swthb.command.back", 4))
                 .executes(BackCommand::executeBack));
     }
 
@@ -35,13 +35,6 @@ public class BackCommand {
         CommandSourceStack source = ctx.getSource();
         ServerPlayer player = source.getPlayer();
         if (player == null) return 0;
-
-        // Check if feature is enabled
-        if (!ModConfig.getInstance().isBackEnabled()) {
-            source.sendFailure(Component.translatableWithFallback(
-                    "swthb.back.disabled", "返回功能已关闭"));
-            return 0;
-        }
 
         // Check if there is a back point
         BackHandler.BackPoint bp = BackHandler.getBackPoint(player);
