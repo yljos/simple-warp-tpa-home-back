@@ -47,12 +47,12 @@ public class TpaCommand {
         ServerPlayer target = source.getServer().getPlayerList().getPlayerByName(targetNameStr);
 
         if (target == null) {
-            source.sendFailure(Component.translatableWithFallback("swthb.tpa.player_not_found", "玩家未找到"));
+            source.sendFailure(Component.translatableWithFallback("swthb.tpa.player_not_found", "玩家不在线"));
             return 0;
         }
 
         if (player.getUUID().equals(target.getUUID())) {
-            source.sendFailure(Component.translatableWithFallback("swthb.tpa.self", "不能传送到自己"));
+            source.sendFailure(Component.translatableWithFallback("swthb.tpa.self", "会撞到自己,不允许"));
             return 0;
         }
 
@@ -78,7 +78,7 @@ public class TpaCommand {
                     // Send teleport message
                     player.sendSystemMessage(
                             Component.translatableWithFallback("swthb.tpa.teleporting",
-                                    "正在传送到 %s ...", targetName)
+                                    "飞向 %s ", targetName)
                                     .withStyle(ChatFormatting.GREEN)
                     );
                     

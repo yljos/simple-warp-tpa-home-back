@@ -49,7 +49,7 @@ public class HomeCommand {
 
         if (home == null) {
             source.sendFailure(
-                    Component.translatableWithFallback("swthb.home.not_found", "你还没有设置家")
+                    Component.translatableWithFallback("swthb.home.not_found", "还没有设置家")
                             .withStyle(ChatFormatting.RED)
             );
             return 0;
@@ -81,7 +81,7 @@ public class HomeCommand {
                 transition,
                 () -> {
                     player.sendSystemMessage(
-                            Component.translatableWithFallback("swthb.home.teleported", "已传送到家")
+                            Component.translatableWithFallback("swthb.home.teleported", "已到家")
                                     .withStyle(ChatFormatting.GREEN)
                     );
                     
