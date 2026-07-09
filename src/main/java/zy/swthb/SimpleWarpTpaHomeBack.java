@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import zy.swthb.command.BackCommand;
 import zy.swthb.command.HomeCommand;
-import zy.swthb.command.SwthbConfigCommand;
+// import zy.swthb.command.SwthbConfigCommand;
 import zy.swthb.command.TpaCommand;
 import zy.swthb.command.WarpCommand;
 import zy.swthb.config.ModConfig;
