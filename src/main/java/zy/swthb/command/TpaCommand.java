@@ -1,11 +1,12 @@
 package zy.swthb.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -25,8 +26,11 @@ public class TpaCommand {
      */
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         // /tpa <target> — Teleport directly to the target player
+        // Use StringArgumentType to avoid OP selector suggestions
         dispatcher.register(Commands.literal("tpa")
-                .then(Commands.argument("target", EntityArgument.player())
+                .then(Commands.argument("target", StringArgumentType.word())
+                        .suggests((ctx, builder) -> SharedSuggestionProvider.suggest(
+                                ctx.getSource().getServer().getPlayerNames(), builder))
                         .executes(TpaCommand::executeTpa)));
     }
 
@@ -38,10 +42,11 @@ public class TpaCommand {
         ServerPlayer player = source.getPlayer();
         if (player == null) return 0;
 
-        ServerPlayer target;
-        try {
-            target = EntityArgument.getPlayer(ctx, "target");
-        } catch (Exception e) {
+        // Parse target from string and get player by name
+        String targetNameStr = StringArgumentType.getString(ctx, "target");
+        ServerPlayer target = source.getServer().getPlayerList().getPlayerByName(targetNameStr);
+
+        if (target == null) {
             source.sendFailure(Component.translatableWithFallback("swthb.tpa.player_not_found", "玩家未找到"));
             return 0;
         }
