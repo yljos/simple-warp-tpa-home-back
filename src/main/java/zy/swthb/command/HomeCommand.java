@@ -33,12 +33,12 @@ public class HomeCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         // /home
         dispatcher.register(Commands.literal("home")
-                .requires(source -> Permissions.check(source, "swthb.command.home", 4))
+                .requires(source -> Permissions.check(source, "swthb.command.home", 0))
                 .executes(HomeCommand::executeHome));
 
         // /sethome
         dispatcher.register(Commands.literal("sethome")
-                .requires(source -> Permissions.check(source, "swthb.command.sethome", 4))
+                .requires(source -> Permissions.check(source, "swthb.command.sethome", 0))
                 .executes(HomeCommand::executeSetHome));
     }
 
