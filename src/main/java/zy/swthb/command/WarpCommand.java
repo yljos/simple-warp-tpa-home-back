@@ -1,3 +1,4 @@
+// WarpCommand.java
 package zy.swthb.command;
 
 import com.mojang.brigadier.CommandDispatcher;
@@ -5,6 +6,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -37,22 +39,26 @@ public class WarpCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         // /warp <name>
         dispatcher.register(Commands.literal("warp")
+                .requires(source -> Permissions.check(source, "swthb.command.warp", 4))
                 .then(Commands.argument("name", StringArgumentType.greedyString())
                         .suggests(WarpCommand::suggestWarps)
                         .executes(WarpCommand::executeWarp)));
 
         // /warps
         dispatcher.register(Commands.literal("warps")
+                .requires(source -> Permissions.check(source, "swthb.command.warps", 4))
                 .executes(WarpCommand::executeWarps));
 
-        // /setwarp <name> (Available to all players)
+        // /setwarp <name>
         dispatcher.register(Commands.literal("setwarp")
+                .requires(source -> Permissions.check(source, "swthb.command.setwarp", 4))
                 .then(Commands.argument("name", StringArgumentType.greedyString())
                         .suggests(WarpCommand::suggestWarps)
                         .executes(WarpCommand::executeSetWarp)));
 
-        // /delwarp <name> (Available to all players)
+        // /delwarp <name>
         dispatcher.register(Commands.literal("delwarp")
+                .requires(source -> Permissions.check(source, "swthb.command.delwarp", 4))
                 .then(Commands.argument("name", StringArgumentType.greedyString())
                         .suggests(WarpCommand::suggestWarps)
                         .executes(WarpCommand::executeDelWarp)));
@@ -73,7 +79,7 @@ public class WarpCommand {
         if (warp == null) {
             source.sendFailure(
                     Component.translatableWithFallback("swthb.warp.not_found",
-                            "找不到 \"%s\"  信号点  ", name)
+                            "找不到 \"%s\"", name)
                             .withStyle(ChatFormatting.RED)
             );
             return 0;
@@ -85,7 +91,7 @@ public class WarpCommand {
 
         if (targetLevel == null) {
             source.sendFailure(Component.translatableWithFallback(
-                    "swthb.warp.dimension_invalid", "信号点  的维度数据异常，无法传送"));
+                    "swthb.warp.dimension_invalid", "维度数据异常，无法传送"));
             return 0;
         }
 
@@ -106,7 +112,7 @@ public class WarpCommand {
                 () -> {
                     player.sendSystemMessage(
                             Component.translatableWithFallback("swthb.warp.teleported",
-                                    "已到达信号点   \"%s\"", name)
+                                    "已到达 \"%s\"", name)
                                     .withStyle(ChatFormatting.GREEN)
                     );
                     
@@ -137,14 +143,14 @@ public class WarpCommand {
         Map<String, ModConfig.WarpEntry> warps = config.getWarps();
 
         Component title = Component.translatableWithFallback("swthb.warp.list_title",
-                "=== 信号点阵列 (%s) ===", String.valueOf(warps.size()))
+                "=== 信号阵列 (%s) ===", String.valueOf(warps.size()))
                 .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD);
         player.sendSystemMessage(title);
 
         if (warps.isEmpty()) {
             player.sendSystemMessage(
                     Component.translatableWithFallback("swthb.warp.empty",
-                            "暂无信号点  ，请添加")
+                            "暂无，请添加")
                             .withStyle(ChatFormatting.GRAY)
             );
             return 1;
@@ -162,7 +168,7 @@ public class WarpCommand {
                             .withClickEvent(new ClickEvent.RunCommand("/warp " + warpName))
                             .withHoverEvent(new HoverEvent.ShowText(
                                     Component.translatableWithFallback("swthb.warp.click_teleport",
-                                            "点击飞向 \"%s\"", warpName))));
+                                            "飞向 \"%s\"", warpName))));
 
             Component infoComp = Component.literal("  [")
                     .withStyle(ChatFormatting.GRAY)
@@ -202,14 +208,14 @@ public class WarpCommand {
         if (isUpdate) {
             source.sendSuccess(() ->
                     Component.translatableWithFallback("swthb.warp.updated",
-                            "已更新信号点   \"%s\" 的位置", name)
+                            "已更新 \"%s\"", name)
                             .withStyle(ChatFormatting.GREEN),
                     true
             );
         } else {
             source.sendSuccess(() ->
                     Component.translatableWithFallback("swthb.warp.set_success",
-                            "已设置信号点   \"%s\"", name)
+                            "已设置 \"%s\"", name)
                             .withStyle(ChatFormatting.GREEN),
                     true
             );
@@ -231,7 +237,7 @@ public class WarpCommand {
         if (config.removeWarp(name)) {
             source.sendSuccess(() ->
                     Component.translatableWithFallback("swthb.warp.deleted",
-                            "已删除信号点   \"%s\"", name)
+                            "已删除 \"%s\"", name)
                             .withStyle(ChatFormatting.GREEN),
                     true
             );
@@ -239,7 +245,7 @@ public class WarpCommand {
         } else {
             source.sendFailure(
                     Component.translatableWithFallback("swthb.warp.not_found",
-                            "找不到名为 \"%s\" 的信号点  ", name)
+                            "找不到 \"%s\"", name)
                             .withStyle(ChatFormatting.RED)
             );
             return 0;

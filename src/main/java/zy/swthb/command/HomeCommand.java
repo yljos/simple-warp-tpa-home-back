@@ -1,8 +1,10 @@
+// HomeCommand.java
 package zy.swthb.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -31,10 +33,12 @@ public class HomeCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         // /home
         dispatcher.register(Commands.literal("home")
+                .requires(source -> Permissions.check(source, "swthb.command.home", 4))
                 .executes(HomeCommand::executeHome));
 
         // /sethome
         dispatcher.register(Commands.literal("sethome")
+                .requires(source -> Permissions.check(source, "swthb.command.sethome", 4))
                 .executes(HomeCommand::executeSetHome));
     }
 
@@ -61,7 +65,7 @@ public class HomeCommand {
 
         if (targetLevel == null) {
             source.sendFailure(Component.translatableWithFallback(
-                    "swthb.home.dimension_invalid", "家的维度数据异常，无法传送"));
+                    "swthb.home.dimension_invalid", "维度数据异常，无法传送"));
             return 0;
         }
 
@@ -81,7 +85,7 @@ public class HomeCommand {
                 transition,
                 () -> {
                     player.sendSystemMessage(
-                            Component.translatableWithFallback("swthb.home.teleported", "已到家")
+                            Component.translatableWithFallback("swthb.home.teleported", "到家")
                                     .withStyle(ChatFormatting.GREEN)
                     );
                     

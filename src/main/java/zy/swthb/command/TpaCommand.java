@@ -1,8 +1,10 @@
+// TpaCommand.java
 package zy.swthb.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -28,6 +30,7 @@ public class TpaCommand {
         // /tpa <target> — Teleport directly to the target player
         // Use StringArgumentType to avoid OP selector suggestions
         dispatcher.register(Commands.literal("tpa")
+                .requires(source -> Permissions.check(source, "swthb.command.tpa", 4))
                 .then(Commands.argument("target", StringArgumentType.word())
                         .suggests((ctx, builder) -> SharedSuggestionProvider.suggest(
                                 ctx.getSource().getServer().getPlayerNames(), builder))
@@ -52,7 +55,7 @@ public class TpaCommand {
         }
 
         if (player.getUUID().equals(target.getUUID())) {
-            source.sendFailure(Component.translatableWithFallback("swthb.tpa.self", "会撞到自己,不允许"));
+            source.sendFailure(Component.translatableWithFallback("swthb.tpa.self", "不允许"));
             return 0;
         }
 
@@ -78,7 +81,7 @@ public class TpaCommand {
                     // Send teleport message
                     player.sendSystemMessage(
                             Component.translatableWithFallback("swthb.tpa.teleporting",
-                                    "飞向 %s ", targetName)
+                                    "飞向%s ", targetName)
                                     .withStyle(ChatFormatting.GREEN)
                     );
                     
