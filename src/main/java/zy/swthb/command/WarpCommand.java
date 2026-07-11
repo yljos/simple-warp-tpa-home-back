@@ -39,7 +39,7 @@ public class WarpCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         // /warp <name>
         dispatcher.register(Commands.literal("warp")
-                .requires(source -> Permissions.check(source, "swthb.command.warp", 4))
+                .requires(source -> Permissions.check(source, "swthb.command.warp", 0))
                 .then(Commands.argument("name", StringArgumentType.greedyString())
                         .suggests(WarpCommand::suggestWarps)
                         .executes(WarpCommand::executeWarp)));
